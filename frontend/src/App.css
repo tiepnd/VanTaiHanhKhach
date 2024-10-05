@@ -1,0 +1,173 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+nav {
+  background-color: #4CAF50; /* Màu nền xanh */
+  padding: 10px 20px; /* Padding cho menu */
+  border-radius: 5px; /* Bo góc */
+}
+
+nav ul {
+  list-style-type: none; /* Bỏ dấu chấm */
+  margin: 0; /* Bỏ margin */
+  padding: 0; /* Bỏ padding */
+  display: flex; /* Sử dụng Flexbox để sắp xếp theo hàng */
+}
+
+nav li {
+  margin-right: 20px; /* Khoảng cách giữa các mục menu */
+}
+
+nav a {
+  color: white; /* Màu chữ trắng */
+  text-decoration: none; /* Bỏ gạch chân */
+  padding: 10px 15px; /* Padding cho các link */
+  border-radius: 3px; /* Bo góc cho các link */
+  transition: background-color 0.3s; /* Hiệu ứng chuyển màu */
+}
+
+nav a:hover {
+  background-color: #45a049; /* Màu nền khi hover */
+}
+
+table {
+  width: 100%; /* Chiều rộng 100% */
+  border-collapse: collapse; /* Xóa khoảng cách giữa các ô */
+  margin: 20px 0; /* Khoảng cách trên và dưới */
+}
+
+th, td {
+  padding: 12px; /* Padding cho ô */
+  text-align: left; /* Canh trái cho văn bản */
+  border-bottom: 1px solid #ddd; /* Đường viền dưới */
+}
+
+th {
+  background-color: #4CAF50; /* Màu nền cho tiêu đề */
+  color: white; /* Màu chữ trắng */
+}
+
+tr:hover {
+  background-color: #f1f1f1; /* Màu nền khi hover hàng */
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9; /* Màu nền cho hàng chẵn */
+}
+
+
+.container {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+h1, h2 {
+  color: #333;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+}
+
+input[type="text"], input[type="number"], input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px; /* Thêm khoảng cách bên phải */
+}
+
+button:last-child {
+  margin-right: 0; /* Không có khoảng cách cho nút cuối cùng */
+}
+
+button:hover {
+  background-color: #45a049;
+}
