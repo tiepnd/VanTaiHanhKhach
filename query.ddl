@@ -1,106 +1,89 @@
-db.Trip.aggregate([
-    // Bước 1: Kết nối với collection "Route" để lấy thông tin tuyến
-    {
+db. Driver.aggregate([
+      // Tìm các chuyến mà tài xế là tai_xe (chính)
+      {
         $lookup: {
-            from: "Route",            // Collection cần kết nối
-            localField: "ma_tuyen",   // Trường trong collection Trip
-            foreignField: "ma_tuyen",  // Trường trong collection Route
-            as: "tuyen_info"          // Tên trường mới cho kết quả
-        }
-    },
-    { $unwind: "$tuyen_info" }, // Chuyển đổi mảng tuyên_info thành đối tượng
-
-    // Bước 2: Kết nối với collection "Driver" để lấy thông tin tài xế
-    {
+          from: "Trip",
+          localField: "cmt", // CMT của tài xế
+          foreignField: "tai_xe", // Tìm trong trường 'tai_xe' của Trip
+          as: "trip_tai_xe",
+        },
+      },
+      // Tìm các chuyến mà tài xế là phu_xe (phụ)
+      {
         $lookup: {
-            from: "Driver",          // Collection cần kết nối
-            localField: "tai_xe",    // Trường trong collection Trip
-            foreignField: "cmt",      // Trường trong collection Driver
-            as: "tai_xe_info"        // Tên trường mới cho kết quả
-        }
-    },
-    { $unwind: "$tai_xe_info" }, // Chuyển đổi mảng tai_xe_info thành đối tượng
-
-    // Bước 3: Kết nối với collection "Driver" để lấy thông tin phụ xe
-    {
+          from: "Trip",
+          localField: "cmt", // CMT của phụ xe
+          foreignField: "phu_xe", // Tìm trong trường 'phu_xe' của Trip
+          as: "trip_phu_xe",
+        },
+      },
+      // Tìm thông tin tuyến đường của các chuyến mà tài xế là tai_xe (chính)
+      {
         $lookup: {
-            from: "Driver",          // Collection cần kết nối
-            localField: "phu_xe",    // Trường trong collection Trip
-            foreignField: "cmt",      // Trường trong collection Driver
-            as: "phu_xe_info"        // Tên trường mới cho kết quả
-        }
-    },
-    { $unwind: "$phu_xe_info" }, // Chuyển đổi mảng phu_xe_info thành đối tượng
-
-    // Bước 4: Chọn các trường cần thiết cho kết quả
-    {
-        $project: {
-            "tuyen_info.do_phuc_tap": 1, // Giữ lại độ phức tạp của tuyến
-            "tai_xe_info.cmt": 1,        // Giữ lại CMT tài xế
-            "tai_xe_info.ten": 1,        // Giữ lại tên tài xế
-            "phu_xe_info.cmt": 1,        // Giữ lại CMT phụ xe
-            "phu_xe_info.ten": 1         // Giữ lại tên phụ xe
-        }
-    },
-
-    // Bước 5: Tính lương cho tài xế và phụ xe
-    {
+          from: "Route",
+          localField: "trip_tai_xe.ma_tuyen", // Mã tuyến từ các chuyến mà tài xế chính
+          foreignField: "ma_tuyen", // Kết nối với mã tuyến của Route
+          as: "route_info_tai_xe",
+        },
+      },
+      // Tìm thông tin tuyến đường của các chuyến mà tài xế là phu_xe (phụ)
+      {
+        $lookup: {
+          from: "Route",
+          localField: "trip_phu_xe.ma_tuyen", // Mã tuyến từ các chuyến mà tài xế phụ
+          foreignField: "ma_tuyen", // Kết nối với mã tuyến của Route
+          as: "route_info_phu_xe",
+        },
+      },
+      // Tính lương tài xế chính và tài xế phụ
+      {
         $addFields: {
-            luong_tai_xe: {
-                $multiply: ["$tuyen_info.do_phuc_tap", 150000, 2] // Tính lương tài xế
+          // Nếu có chuyến thì tính lương dựa trên độ phức tạp của tuyến, nếu không thì lương = 0
+          luong_tai_xe: {
+            $cond: {
+              if: { $gt: [{ $size: "$trip_tai_xe" }, 0] }, // Nếu có chuyến
+              then: {
+                $sum: {
+                  $map: {
+                    input: "$route_info_tai_xe", // Lấy độ phức tạp của các tuyến
+                    as: "route",
+                    in: { $multiply: ["$$route.do_phuc_tap", 150000, 2] }, // Lương tài xế = độ phức tạp * 150k * 2
+                  },
+                },
+              },
+              else: 0, // Nếu không có chuyến thì lương = 0
             },
-            luong_phu_xe: {
-                $multiply: ["$tuyen_info.do_phuc_tap", 150000] // Tính lương phụ xe
-            }
-        }
-    },
-
-    // Bước 6: Tạo hai nhánh để xử lý kết quả cho tài xế và phụ xe
-    {
-        $facet: {
-            tai_xe: [
-                { $match: { luong_tai_xe: { $exists: true } } }, // Lọc các tài xế có lương
-                {
-                    $project: {
-                        "cmt": "$tai_xe_info.cmt", // Đổi tên trường CMT
-                        "ten": "$tai_xe_info.ten", // Đổi tên trường tên
-                        "luong": "$luong_tai_xe"   // Giữ lại lương tài xế
-                    }
-                }
-            ],
-            phu_xe: [
-                { $match: { luong_phu_xe: { $exists: true } } }, // Lọc các phụ xe có lương
-                {
-                    $project: {
-                        "cmt": "$phu_xe_info.cmt", // Đổi tên trường CMT
-                        "ten": "$phu_xe_info.ten", // Đổi tên trường tên
-                        "luong": "$luong_phu_xe"   // Giữ lại lương phụ xe
-                    }
-                }
-            ]
-        }
-    },
-
-    // Bước 7: Kết hợp kết quả tài xế và phụ xe lại thành một mảng
-    {
+          },
+          // Tương tự cho phụ xe
+          luong_phu_xe: {
+            $cond: {
+              if: { $gt: [{ $size: "$trip_phu_xe" }, 0] }, // Nếu có chuyến
+              then: {
+                $sum: {
+                  $map: {
+                    input: "$route_info_phu_xe", // Lấy độ phức tạp của các tuyến
+                    as: "route",
+                    in: { $multiply: ["$$route.do_phuc_tap", 150000] }, // Lương phụ xe = độ phức tạp * 150k
+                  },
+                },
+              },
+              else: 0, // Nếu không có chuyến thì lương = 0
+            },
+          },
+        },
+      },
+      // Cộng lương tài xế chính và phụ xe lại
+      {
+        $addFields: {
+          luong: { $add: ["$luong_tai_xe", "$luong_phu_xe"] },
+        },
+      },
+      // Chỉ lấy những thông tin cần thiết
+      {
         $project: {
-            results: { $concatArrays: ["$tai_xe", "$phu_xe"] } // Kết hợp hai mảng
-        }
-    },
-    { $unwind: "$results" }, // Tách mảng kết quả thành các tài liệu riêng biệt
-    { $replaceRoot: { newRoot: "$results" } }, // Đặt lại cấu trúc để kết quả dễ hiểu hơn
-
-    // Bước 8: Nhóm lại theo CMT để tính tổng lương
-    {
-        $group: {
-            _id: "$cmt",              // Nhóm theo trường CMT
-            cmt: { $first: "$cmt" }, // Giữ lại giá trị CMT
-            ten: { $first: "$ten" }, // Giữ lại tên
-            luong: { $sum: "$luong" } // Tính tổng lương
-        }
-    }
-])
-
-
-
-
+          cmt: 1,
+          ten: 1,
+          luong: 1,
+        },
+      },
+    ]);
